@@ -111,6 +111,8 @@ def parseENML(node, level=0, result='', option=parserOption()):  # {{{
             result += "".join([parseENML(child, level + 1, "", option) for child in node.childNodes])
             result += "\n"
             option.blockquote -= 1
+        elif tag == "hr":
+            result += "----\n"
         elif tag in ["img", "en-media", "en-todo", "en-crypt"]:  # 後で改行を除去して見やすくする？
             return node.toxml() + "\n"
         elif tag in ["h1", "h2", "h3", "h4", "h5", "h6"]:
