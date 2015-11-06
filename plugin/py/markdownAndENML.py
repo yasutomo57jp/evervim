@@ -3,6 +3,7 @@
 # Author: kakkyz <kakkyz81@gmail.com>
 # License: MIT
 import markdown
+from markdown.extensions.sane_lists import SaneListExtension
 import xml.sax.saxutils
 import re
 
@@ -134,7 +135,7 @@ def parseENML(node, level=0, result='', option=parserOption()):  # {{{
 
 
 def parseMarkdown(mkdtext):  # {{{
-    m = markdown.markdown(mkdtext.decode('utf-8'))
+    m = markdown.markdown(mkdtext.decode('utf-8'), extensions=[SaneListExtension()])
     return m
 #}}}
 
