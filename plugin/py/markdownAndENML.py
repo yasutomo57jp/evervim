@@ -18,6 +18,7 @@ class parserOption:  # {{{
         self.p          = False
         self.blockquote = 0
         self.count      = 0
+        self.liststack = []
 
     def __str__(self):
         return "a={0} ul={1} ol={2} li={3} pre={4} code={5} p={6} blockquote={7} count={8} ".format(self.a,
@@ -54,18 +55,26 @@ def parseENML(node, level=0, result='', option=parserOption()):  # {{{
             option.a = False
 #           result += '[{0}]({1})'.format(htmltext, htmlhref) # this code does not work multibyte!
             result += '[{' + htmltext + '}]({' + htmlhref + '})'
-            result += "\n"
         elif tag == "ul":
             option.ul = True
-            option.count = 0
+            if len(option.liststack) == 0:
+                result += "\n"
+            option.liststack.append(("ul", option.count))
             result += "".join([parseENML(child, level + 1, "", option) for child in node.childNodes])
-            result += "\n"
+            _type, option.count = option.liststack.pop()
+            if len(option.liststack) == 0:
+                result += "\n"
             option.ul = False
         elif tag == "ol":
             option.ol = True
+            if len(option.liststack) == 0:
+                result += "\n"
+            option.liststack.append(("ol", option.count))
             option.count = 0
             result += "".join([parseENML(child, level + 1, "", option) for child in node.childNodes])
-            result += "\n"
+            _type, option.count = option.liststack.pop()
+            if len(option.liststack) == 0:
+                result += "\n"
             option.ol = False
         elif tag == "pre":
             option.pre = True
@@ -91,10 +100,12 @@ def parseENML(node, level=0, result='', option=parserOption()):  # {{{
             option.p = False
         elif tag == "li":
             option.count += 1
-            if option.ul:
-                result += "* " + "".join([parseENML(child, level + 1, "", option) for child in node.childNodes])
-            if option.ol:
-                result += str(option.count) + ". " + "".join([parseENML(child, level + 1, "", option) for child in node.childNodes])
+            #########if option.ul:
+            depth = len(option.liststack)-1
+            if option.liststack[-1][0] == "ul":
+                result += "\t"*depth + "* " + "".join([parseENML(child, level + 1, "", option) for child in node.childNodes])
+            elif option.liststack[-1][0] == "ol":
+                result += "\t"*depth + str(option.count) + ". " + "".join([parseENML(child, level + 1, "", option) for child in node.childNodes])
         elif tag == "blockquote":
             option.blockquote += 1
             result += "".join([parseENML(child, level + 1, "", option) for child in node.childNodes])
